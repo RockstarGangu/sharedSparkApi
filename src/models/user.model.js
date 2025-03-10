@@ -49,9 +49,9 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Campaign",
     },
-    donor: {
+    donations: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Donations",
+      ref: "Donation",
     },
     avatar:{
       type: String,
