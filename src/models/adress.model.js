@@ -30,7 +30,7 @@ const adressSchema = new mongoose.Schema(
     },
     adressType:{
         type: String,
-        enum: ["Campaign", "Donor's"]
+        enum: ["Campaign", "Donor"]
     }
   },
   { timestamps: true }

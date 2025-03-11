@@ -14,13 +14,14 @@ const campaignSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    dealine: {
+    deadline: {
       type: Date,
       required: true,
     },
     status: {
       type: String,
       enum: ["Active", "Inactive", "Completed"],
+      default: "Active",
     },
     host: {
       type: mongoose.Schema.Types.ObjectId,
@@ -33,6 +34,22 @@ const campaignSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    validationProofType: {
+      type: String,
+      enum: [
+        "AdharCard",
+        "Passport",
+        "PanNumber",
+        "NGOCertificationNumber",
+        "SEBICertificationNumber",
+        "Other",
+      ],
+    },
+    validationProofNumber: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     donations: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -57,6 +74,7 @@ const campaignSchema = new mongoose.Schema(
     targetReach: {
       type: Number,
       required: true,
+      default: 0,
     },
     sponsors: [
       {
@@ -93,10 +111,22 @@ const campaignSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-    shares:{
+    shares: {
       type: Number,
       default: 0,
-    }
+    },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Likes",
+      },
+    ],
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comments",
+      },
+    ],
   },
   { timestamps: true }
 );
