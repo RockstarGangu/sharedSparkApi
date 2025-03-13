@@ -1,7 +1,12 @@
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
 const campaignSchema = new mongoose.Schema(
   {
+    campaignName: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     title: {
       type: String,
       required: true,
@@ -127,6 +132,10 @@ const campaignSchema = new mongoose.Schema(
         ref: "Comments",
       },
     ],
+    popularityScore:{
+      type: Number,
+      default: 0,
+    }
   },
   { timestamps: true }
 );

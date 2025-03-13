@@ -1,12 +1,12 @@
-class ApiError {
-  constructor(
-    statusCode,
-    message,
-    error,
-    type = "VALIDATION" | "INTERNAL" | "DATABASE" | "MISCELLANEOUS"
-  ) {
+export class ApiError {
+  constructor(statusCode, type, message, errors = [], suggestion, path) {
     this.statusCode = statusCode;
-    (this.message = message), (this.error = error);
+    this.data = null;
+    this.message = message;
+    this.success = false;
+    this.errors = errors;
     this.type = type;
+    this.suggestion = suggestion;
+    this.path = path;
   }
 }

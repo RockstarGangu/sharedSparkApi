@@ -1,8 +1,8 @@
-import Campaign from "../models/campaign.model";
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiResponse } from "../utils/apiResponse";
-import { ApiError } from "../utils/apiError";
-import { campaignSchema } from "../zodSchema/campaign.schema";
+import Campaign from "../models/campaign.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiResponse } from "../utils/apiResponse.js";
+import { ApiError } from "../utils/apiError.js";
+import { campaignSchema } from "../zodSchema/campaign.schema.js";
 
 const listACampaign = asyncHandler(async (req, res) => {
   try {
@@ -28,7 +28,7 @@ const listACampaign = asyncHandler(async (req, res) => {
       return new ApiError(
         400,
         "Data Validation Failed",
-        result.error,
+        result.error.flatten().fieldErrors,
         "VALIDATION"
       );
     }
@@ -40,7 +40,92 @@ const listACampaign = asyncHandler(async (req, res) => {
 //TODO: Only fetch nearby campaigns to the user's location
 const getAllCampaigns = asyncHandler(async (req, res) => {
   try {
-    const campaigns = await Campaign.find();
+    const campaigns = await Campaign.find({
+      status: "Active",
+      location: {
+        $geoWithin: {
+          $centerSphere: [[req.query.longitude, req.query.latitude], 5000],
+        },
+      },
+    }).exec();
+    return res
+      .status(200)
+      .json(new ApiResponse(200, campaigns, "Campaigns fetched successfully"));
+  } catch (error) {
+    return new ApiError(500, "Internal Server Error", error, "INTERNAL");
+  }
+});
+
+const getCampaignsByQuery = asyncHandler(async (req, res) => {
+  try {
+    const campaigns = await Campaign.find({
+      status: req.query.status,
+      category: req.query.category,
+      startDate: {
+        $gte: req.query.startDate,
+        $lte: req.query.endDate,
+      },
+      campaignName: req.query.campaignName,
+      targetFunds: {
+        $gte: req.query.minTargetFunds,
+        $lte: req.query.maxTargetFunds,
+      },
+    })
+      .sort({ startDate: -1 })
+      .limit(req.query.limit)
+      .skip(req.query.skip)
+      .exec();
+    return res
+      .status(200)
+      .json(new ApiResponse(200, campaigns, "Campaigns fetched successfully"));
+  } catch (error) {
+    return new ApiError(500, "Internal Server Error", error, "INTERNAL");
+  }
+});
+
+const getCampaignsByPopularity = asyncHandler(async (req, res) => {
+  await Campaign.aggregate([
+    {
+      $project: {
+        _id: 1,
+        numberOfDonations: { $size: "$donations" },
+        numberOfLikes: { $size: "$likes" },
+        numberOfComments: { $size: "$comments" },
+        numberOfDonors: { $size: "$donors" },
+        totalNumbers: {
+          $add: [
+            "$numberOfDonations",
+            "$numberOfLikes",
+            "$numberOfComments",
+            "$numberOfDonors",
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        popularityScore: { $avg: "$totalNumbers" },
+      },
+    },
+    {
+      $merge: {
+        into: "campaigns",
+        on: "_id",
+        whenMatched: "merge",
+        whenNotMatched: "skip",
+      },
+    },
+  ]);
+});
+
+const searchCampaigns = asyncHandler(async (req, res) => {
+  try {
+    const campaigns = await Campaign.find({
+      $text: {
+        $search: req.query.search,
+      },
+    });
     return res
       .status(200)
       .json(new ApiResponse(200, campaigns, "Campaigns fetched successfully"));
@@ -98,7 +183,7 @@ const updateACampaign = asyncHandler(async (req, res) => {
       return new ApiError(
         400,
         "Data Validation Failed",
-        result.error,
+        result.error.flatten().fieldErrors,
         "VALIDATION"
       );
     }
@@ -140,6 +225,71 @@ const markACampaignAsComplete = asyncHandler(async (req, res) => {
   }
 });
 
+//Use mongodb aggregation to get all of the donations for a campaign only using Campaign schema
+const getDonationsForACampaign = asyncHandler(async (req, res) => {
+  try {
+    const donations = await Campaign.aggregate([
+      {
+        $match: {
+          _id: req.params.campaignId,
+        },
+      },
+      {
+        $lookup: {
+          from: "donations",
+          localField: "_id",
+          foreignField: "campaign",
+          as: "donations",
+        },
+      },
+      {
+        $unwind: "$donations",
+      },
+    ]);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, donations, "Donations fetched successfully"));
+  } catch (error) {
+    return new ApiError(500, "Internal Server Error", error, "INTERNAL");
+  }
+});
+
+const getAllTheDonorsForACampaign = asyncHandler(async (req, res) => {
+  try {
+    const donors = await Campaign.aggregate([
+      {
+        $match: {
+          _id: req.params.campaignId,
+        },
+        $lookup: {
+          from: "donations",
+          localField: "_id",
+          foreignField: "campaign",
+          as: "donations",
+        },
+        $unwind: "$donations",
+        $lookup: {
+          from: "users",
+          localField: "donations.donor",
+          foreignField: "_id",
+          as: "donors",
+        },
+        $unwind: "$donors",
+        $group: {
+          _id: "$donors._id",
+          donations: {
+            $sum: "$donations.amount",
+          },
+        },
+      },
+    ]);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, donors, "Donors fetched successfully"));
+  } catch (error) {
+    return new ApiError(500, "Internal Server Error", error, "INTERNAL");
+  }
+});
 
 export {
   listACampaign,
@@ -147,4 +297,9 @@ export {
   getACampaign,
   updateACampaign,
   markACampaignAsComplete,
+  getDonationsForACampaign,
+  getAllTheDonorsForACampaign,
+  getCampaignsByPopularity,
+  getCampaignsByQuery,
+  searchCampaigns,
 };

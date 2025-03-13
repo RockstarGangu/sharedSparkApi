@@ -12,7 +12,7 @@ const CATEGORY_OPTIONS = [
   "Entertainment",
   "Other",
 ];
-const adressType = ["Campaign", "Donor"];
+
 const validationProofTypeOptions = [
   "AdharCard",
   "Passport",
@@ -22,30 +22,12 @@ const validationProofTypeOptions = [
   "Other",
 ];
 
-const adressSchema = z.object({
-  street: z
-    .string({ required_error: "Street must be a string" })
-    .min(3, { message: "Street must be at least 3 characters" }),
-  city: z
-    .string({ required_error: "City must be a string" })
-    .min(3, { message: "City must be at least 3 characters" }),
-  state: z
-    .string({ required_error: "State must be a string" })
-    .min(3, { message: "State must be at least 3 characters" }),
-  pinCode: z
-    .number({ required_error: "Pin Code must be a number" })
-    .refine((val) => /^[1-9][0-9]{5}$/.test(val), {
-      message: "Invalid pincode",
-    }),
-  country: z
-    .string({ required_error: "Country must be a string" })
-    .min(3, { message: "Country must be at least 3 characters" }),
-  adressType: z.enum(adressType, {
-    required_error: "Adress type must be from the list",
-  }),
-});
+
 
 export const campaignSchema = z.object({
+  campaignName: z
+    .string({ required_error: "Campaign name must be a string" })
+    .min(3, { message: "Campaign name must be at least 3 characters" }),
   title: z
     .string({ required_error: "Title must be a string" })
     .min(3, { message: "Title must be at least 3 characters" }),
@@ -67,7 +49,7 @@ export const campaignSchema = z.object({
     .refine((val) => /^[0-9a-fA-F]{24}$/.test(val), {
       message: "Invalid ObjectId format",
     }),
-  adress: adressSchema,
+  // adress: adressSchema,
   location: z
     .object({
       coordinates: z
@@ -114,4 +96,7 @@ export const campaignSchema = z.object({
     .refine((val) => /^[0-9a-fA-F]{24}$/.test(val), {
       message: "Invalid ObjectId format",
     }),
+  popularityScore: z
+    .number({ required_error: "popularity score has to be a number" })
+    .default(0),
 });
