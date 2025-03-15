@@ -22,8 +22,6 @@ const validationProofTypeOptions = [
   "Other",
 ];
 
-
-
 export const campaignSchema = z.object({
   campaignName: z
     .string({ required_error: "Campaign name must be a string" })
@@ -34,21 +32,21 @@ export const campaignSchema = z.object({
   description: z
     .string({ required_error: "Description must be a string" })
     .min(3, { message: "Description must be at least 3 characters" }),
-  startDate: z.date(),
-  deadline: z.date(),
+  startDate: z.string().date(),
+  deadline: z.string().date(),
   status: z.enum(STATUS_OPTIONS, {
     required_error: "Status must be from the list",
   }),
   host: z.string().refine((val) => /^[0-9a-fA-F]{24}$/.test(val), {
     message: "Invalid ObjectId format",
-  }),
+  }).optional(),
   members: z
     .string()
     .array()
-    .optional()
     .refine((val) => /^[0-9a-fA-F]{24}$/.test(val), {
       message: "Invalid ObjectId format",
-    }),
+    })
+    .optional(),
   // adress: adressSchema,
   location: z
     .object({
@@ -62,7 +60,7 @@ export const campaignSchema = z.object({
     required_error: "Validation proof type must be from the list",
   }),
   validationProofNumber: z
-    .string({ required_error: "Validation proof number must be a string" })
+    .number({ required_error: "Validation proof number must be a string" })
     .min(3, {
       message: "Validation proof number must be at least 3 characters",
     }),
@@ -77,25 +75,25 @@ export const campaignSchema = z.object({
   donors: z
     .string()
     .array()
-    .optional()
     .refine((val) => /^[0-9a-fA-F]{24}$/.test(val), {
       message: "Invalid ObjectId format",
-    }),
+    })
+    .optional(),
   shares: z.number().default(0),
   likes: z
     .string()
     .array()
-    .optional()
     .refine((val) => /^[0-9a-fA-F]{24}$/.test(val), {
       message: "Invalid ObjectId format",
-    }),
+    })
+    .optional(),
   comments: z
     .string()
     .array()
-    .optional()
     .refine((val) => /^[0-9a-fA-F]{24}$/.test(val), {
       message: "Invalid ObjectId format",
-    }),
+    })
+    .optional(),
   popularityScore: z
     .number({ required_error: "popularity score has to be a number" })
     .default(0),

@@ -12,14 +12,18 @@ const donationSchema = new mongoose.Schema(
       ref: "Campaign",
       required: true,
     },
-    amount: {
-      type: Number,
-      required: true,
+    orderId: {
+      type: String,
+    },
+    status: {
+      type: String,
+      enum: ["Incomplete Payment", "Payment Successful"],
+      default: "Incomplete Payment",
     },
     payment: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Payment",
-      required: true,
+      // required: true,
     },
   },
   { timestamps: true }

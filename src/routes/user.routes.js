@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAllUserDonations,
   getAllUserHostedCampaigns,
+  getAllUsersByName,
   getUserById,
   loginUser,
   logOutUser,
@@ -23,5 +24,6 @@ router.route("/getAllUserDonations").get(verifyJWT, getAllUserDonations);
 router
   .route("/getAllUserHostedCampaigns")
   .get(verifyJWT, getAllUserHostedCampaigns);
+router.route("/getAllUsersByName").get(verifyJWT, getAllUsersByName);
 
 export default router;

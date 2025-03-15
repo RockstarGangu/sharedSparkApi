@@ -7,33 +7,33 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    required: true,
-  },
-  transactionId: {
-    type: String,
-    required: true,
+    // required: true,
   },
   status: {
     type: String,
-    required: true,
+    // required: true,
   },
-  user: {
+  donor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    // required: true,
   },
   paymentId: {
     type: String,
-    required: true,
+    // required: true,
+  },
+  razorpaySignature: {
+    type: String,
+    // required: true,
   },
   orderId: {
     type: String,
-    required: true,
+    // required: true,
   },
   donation: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Donation",
-    required: true,
+    // required: true,
   },
 });
 

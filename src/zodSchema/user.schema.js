@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { adressSchema } from "./campaign.schema.js";
 
 const passwordRegex =
   /^(?=.*)(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6}$/;
@@ -38,7 +37,6 @@ export const userSchema = z.object({
         .optional(),
     })
     .optional(),
-  // adress: adressSchema,
   isVerified: z.boolean().default(false),
   refreshToken: z.string().optional(),
   campaignHosted: z

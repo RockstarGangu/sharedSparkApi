@@ -31,7 +31,7 @@ const campaignSchema = new mongoose.Schema(
     host: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
     },
     members: [
       {
@@ -64,7 +64,7 @@ const campaignSchema = new mongoose.Schema(
     adress: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Adress",
-      required: true,
+      // required: true,
     },
     location: {
       coordinates: {

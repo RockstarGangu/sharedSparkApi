@@ -257,6 +257,29 @@ const getUserById = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllUsersByName = asyncHandler(async (req, res) => {
+  try {
+    const name = req.query.name;
+    const users = await User.find({
+      $or: [{ firstName: name }, { lastName: name }],
+    }).select("+avatar +firstName +lastName");
+    return res.status(200).json(new ApiResponse(200, users, "Users found"));
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        new ApiError(
+          500,
+          "INTERNAL SERVER ERROR",
+          "Something went wrong",
+          error,
+          "Please check the status of the server",
+          "/getAllUsersByName"
+        )
+      );
+  }
+});
+
 const logOutUser = asyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
@@ -477,7 +500,7 @@ const getAllUserDonations = asyncHandler(async (req, res) => {
         $project: {
           userDonations: 1,
         },
-      }
+      },
     ]);
     res.status(201).json(new ApiResponse(200, donations, "Donations found"));
   } catch (error) {
@@ -505,7 +528,7 @@ const getAllUserHostedCampaigns = asyncHandler(async (req, res) => {
         $project: {
           hostedCampaigns: 1,
         },
-      }
+      },
     ]);
     res
       .status(201)
@@ -524,4 +547,5 @@ export {
   updateUserDetails,
   getAllUserDonations,
   getAllUserHostedCampaigns,
+  getAllUsersByName,
 };
