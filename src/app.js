@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.routes.js";
 import campaignRouter from "./routes/campaign.routes.js";
 import donationRouter from "./routes/donation.routes.js";
+import commentRouter from "./routes/comment.routes.js";
+import likesRouter from "./routes/like.routes.js";
 import Razorpay from "razorpay";
 
 const app = express();
@@ -29,5 +31,14 @@ app.use(cookieParser());
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/campaign", campaignRouter);
 app.use("/api/v1/donation", donationRouter);
+app.use("/api/v1/comment", commentRouter);
+app.use("/api/v1/like", likesRouter);
+
+app.get("/healthRoute",(req,res)=>{
+  res.status(200).json({
+    status: "UP",
+    message: "Server is running",
+  });
+})
 
 export { app };

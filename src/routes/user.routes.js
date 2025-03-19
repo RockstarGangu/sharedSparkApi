@@ -3,6 +3,7 @@ import {
   getAllUserDonations,
   getAllUserHostedCampaigns,
   getAllUsersByName,
+  getUserAdress,
   getUserById,
   loginUser,
   logOutUser,
@@ -25,5 +26,6 @@ router
   .route("/getAllUserHostedCampaigns")
   .get(verifyJWT, getAllUserHostedCampaigns);
 router.route("/getAllUsersByName").get(verifyJWT, getAllUsersByName);
+router.route("get-a-user-adress").get(verifyJWT, getUserAdress);
 
 export default router;

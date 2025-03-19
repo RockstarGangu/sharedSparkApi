@@ -4,7 +4,6 @@ import { ApiError } from "../utils/apiError.js";
 
 const commentOnACampaign = async (req, res) => {
   const { campaignId } = req.params;
-  const { userId } = req.user._id;
   const { commentText } = req.body;
 
   const campaign = await Campaign.findById(campaignId);
@@ -16,16 +15,18 @@ const commentOnACampaign = async (req, res) => {
   }
 
   const comment = await Comments.create({
-    comment: commentText,
-    commentedBy: userId,
-    commentedTo: campaignId,
+    comment: commentText.trim(),
+    commentBy: req.user._id,
+    commentTo: campaignId,
   });
 
-  campaign.comments.push(comment._id);
-  campaign.save();
+  await Campaign.findByIdAndUpdate(campaignId, {
+    $push: { comments: comment._id },
+  });
 
   return res.status(200).json({
     status: 200,
+    comment,
     message: "Comment added successfully",
   });
 };
@@ -41,41 +42,6 @@ const unCommentOnACampaign = async (req, res) => {
   });
 };
 
-const getCommentsForACampaign = async (req, res) => {
-  const { campaignId } = req.params;
-  const campaign = await Campaign.findById(campaignId);
-  if (!campaign) {
-    return res
-      .status(404)
-      .json(
-        new ApiError(404, "Campaign not found", "Campaign not found", "MISC")
-      );
-  }
-  const comments = await Comments.aggregate([
-    {
-      $match: {
-        commentedTo: campaignId,
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "commentedBy",
-        foreignField: "_id",
-        as: "commentedBy",
-      },
-    },
-    {
-      $unwind: "$commentedBy",
-    },
-  ]);
-
-  return res.status(200).json({
-    status: 200,
-    comments,
-    message: "Comments fetched successfully",
-  });
-};
 
 const replyToAComment = async (req, res) => {
   const user = req.user._id;
@@ -122,14 +88,14 @@ const getRepliesForAComment = async (req, res) => {
     },
     {
       $lookup: {
-        from: "users",
-        localField: "commentedBy",
+        from: "comments",
+        localField: "replies",
         foreignField: "_id",
-        as: "commentedBy",
+        as: "replies",
       },
     },
     {
-      $unwind: "$commentedBy",
+      $unwind: "$replies",
     },
   ]);
 
@@ -143,7 +109,6 @@ const getRepliesForAComment = async (req, res) => {
 export {
   commentOnACampaign,
   unCommentOnACampaign,
-  getCommentsForACampaign,
   replyToAComment,
   getRepliesForAComment,
 };

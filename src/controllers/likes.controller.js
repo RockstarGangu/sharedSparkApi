@@ -21,6 +21,10 @@ const likeACampaign = async (req, res) => {
   campaign.likes.push(userId);
   campaign.save();
 
+  await Campaign.findByIdAndUpdate(campaignId, {
+    $push: { likes: like._id },
+  });
+
   return res.status(200).json({
     status: 200,
     like,

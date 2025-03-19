@@ -538,6 +538,45 @@ const getAllUserHostedCampaigns = asyncHandler(async (req, res) => {
   }
 });
 
+const getUserAdress = asyncHandler(async (req, res) => {
+  try {
+    const { userId } = req.user._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return new ApiError(404, "User not found", null, "USER_NOT_FOUND");
+    }
+    const userAdress = await User.aggregate([
+      {
+        $match: {
+          _id: userId,
+        },
+      },
+      {
+        $lookup: {
+          from: "adresses",
+          localField: "adresses",
+          foreignField: "_id",
+          as: "adresses",
+        },
+      },
+      {
+        $project: {
+          adresses: 1,
+        },
+      },
+      {
+        $unwind: {
+          path: "$adresses",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ]);
+    res.status(200).json(new ApiResponse(200, userAdress, "User adress found"));
+  } catch (error) {
+    return new ApiError(500, "Internal Server Error", error, "INTERNAL");
+  }
+});
+
 export {
   registerUser,
   loginUser,
@@ -548,4 +587,5 @@ export {
   getAllUserDonations,
   getAllUserHostedCampaigns,
   getAllUsersByName,
+  getUserAdress,
 };

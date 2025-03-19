@@ -72,7 +72,7 @@ const addACampaignAdress = asyncHandler(async (req, res) => {
 });
 
 const addADonorAdress = asyncHandler(async (req, res) => {
-  const donorId = req.params.donorId;
+  const donorId = req.user._id;
   const adress = req.body;
   if (Object.keys(adress).length === 0) {
     return new ApiError(
@@ -135,7 +135,7 @@ const addADonorAdress = asyncHandler(async (req, res) => {
 });
 
 const updateCampaignAdress = asyncHandler(async (req, res) => {
-  const adressId = req.params.adressId;
+  const { campaignId } = req.params;
   const adress = req.body;
   if (Object.keys(adress).length === 0) {
     return new ApiError(
@@ -149,22 +149,24 @@ const updateCampaignAdress = asyncHandler(async (req, res) => {
   }
   const result = adressSchema.safeParse(adress);
   if (result.success && result.data.adressType === "Campaign") {
-    const adress = await Adress.findById(adressId);
-    if (!adress) {
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign) {
       return new ApiError(
         404,
         "INPUT VALIDATION",
-        "Adress not found",
-        "Adress not found",
+        "Campaign not found",
+        "Campaign not found",
         "Please check your authentication status",
         "/updateCampgainAdress"
       );
     }
+
     const updatedAdress = await Adress.findByIdAndUpdate(
-      adressId,
-      result.data,
-      { new: true }
+      campaign.adress,
+      { $set: result.data },
+      { new: true, runValidators: true }
     );
+
     if (!updatedAdress) {
       return new ApiError(
         500,
@@ -175,7 +177,9 @@ const updateCampaignAdress = asyncHandler(async (req, res) => {
         "/updateCampgainAdress"
       );
     }
-    return res.status(200).json(new ApiResponse(200, updatedAdress));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updatedAdress, "Adress updated"));
   } else if (result.error) {
     return res
       .status(400)
@@ -193,7 +197,7 @@ const updateCampaignAdress = asyncHandler(async (req, res) => {
 });
 
 const updateDonorAdress = asyncHandler(async (req, res) => {
-  const adressId = req.params.adressId;
+  const donor = req.user._id;
   const adress = req.body;
   if (Object.keys(adress).length === 0) {
     return new ApiError(
@@ -207,7 +211,7 @@ const updateDonorAdress = asyncHandler(async (req, res) => {
   }
   const result = adressSchema.safeParse(adress);
   if (result.success && result.data.adressType === "Donor") {
-    const adress = await Adress.findById(adressId);
+    const user = await User.findById(donor);
     if (!adress) {
       return new ApiError(
         404,
@@ -219,10 +223,10 @@ const updateDonorAdress = asyncHandler(async (req, res) => {
       );
     }
     const updatedAdress = await Adress.findByIdAndUpdate(
-      adressId,
-      result.data,
-      { new: true }
-    );
+      user.adress,
+      { $set: result.data },
+      { new: true, runValidators: true }
+    )
     if (!updatedAdress) {
       return new ApiError(
         500,
@@ -263,7 +267,9 @@ const deleteAdress = asyncHandler(async (req, res) => {
       "/deleteAdress"
     );
   }
-  return res.status(200).json(new ApiResponse(200, deletedAdress,"Adress deleted"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Adress deleted"));
 });
 
 export {

@@ -22,16 +22,18 @@ const commentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  commentTo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Campaign",
-    required: true,
-  },
-  commentBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
+  commentTo: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Campaign",
+    },
+  ],
+  commentBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   replies: [repliesSchema],
 });
 

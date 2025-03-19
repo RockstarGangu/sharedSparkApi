@@ -11,6 +11,9 @@ import {
   getAllCampaigns,
   getCampaignsByQuery,
   addMembersToACampaign,
+  getAllCommentsForACampaign,
+  getAllLikesForACampaign,
+  getCampaignAdress,
 } from "../controllers/campaign.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -31,5 +34,8 @@ router.route("/getPopularity").get(verifyJWT, getCampaignsByPopularity);
 router.route("/search").get(verifyJWT, searchCampaigns);
 router.route("/campaigns").get(verifyJWT, getCampaignsByQuery);
 router.route("/addMembers/:campaignId").patch(verifyJWT, addMembersToACampaign);
+router.route("/get-all-comments/:campaignId").get(verifyJWT, getAllCommentsForACampaign);
+router.route("/getAllLikes/:campaignId").get(verifyJWT, getAllLikesForACampaign);
+router.route("/getCampaignAdress/:campaignId").get(verifyJWT, getCampaignAdress);
 
 export default router;

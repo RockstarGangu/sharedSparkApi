@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { instance } from "../app.js";
+import User from "../models/user.model.js";
 
 /*
 1. Get all the donation details,
@@ -25,6 +26,10 @@ const makeADonation = asyncHandler(async (req, res) => {
   });
 
   await donation.save();
+
+  await User.findByIdAndUpdate(donor, {
+    $push: { donations: donation },
+  });
 
   const options = {
     amount: Number(amount * 100),

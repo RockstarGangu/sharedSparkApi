@@ -4,8 +4,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import { campaignSchema } from "../zodSchema/campaign.schema.js";
 import Adress from "../models/adress.model.js";
-import Likes from "../models/likes.model.js";
-import Comments from "../models/comments.model.js";
+import User from "../models/user.model.js";
 
 const listACampaign = asyncHandler(async (req, res) => {
   try {
@@ -42,7 +41,6 @@ const listACampaign = asyncHandler(async (req, res) => {
           );
       }
       const campaign = await Campaign.create(result.data);
-      console.log("I ran");
       const host = await req.user._id;
       const addedCampaign = await Campaign.findById(campaign._id);
       if (!addedCampaign) {
@@ -61,6 +59,9 @@ const listACampaign = asyncHandler(async (req, res) => {
       }
       addedCampaign.host = host;
       await addedCampaign.save();
+      await User.findByIdAndUpdate(host, {
+        $push: { campaignsHosted: addedCampaign._id },
+      });
       return res
         .status(201)
         .json(
@@ -392,6 +393,99 @@ const getAllTheDonorsForACampaign = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllCommentsForACampaign = asyncHandler(async (req, res) => {
+  try {
+    const comments = await Campaign.aggregate([
+      {
+        $match: {
+          _id: req.params.campaignId,
+        },
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "commentTo",
+          as: "comments",
+        },
+      },
+      {
+        $unwind: "$comments",
+      },
+    ]);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, comments, "Comments fetched successfully"));
+  } catch (error) {
+    return new ApiError(500, "Internal Server Error", error, "INTERNAL");
+  }
+});
+
+const getAllLikesForACampaign = asyncHandler(async (req, res) => {
+  try {
+    const likes = await Campaign.aggregate([
+      {
+        $match: {
+          _id: req.params.campaignId,
+        },
+      },
+      {
+        $lookup: {
+          from: "likes",
+          localField: "_id",
+          foreignField: "likedTo",
+          as: "likes",
+        },
+      },
+      {
+        $unwind: "$likes",
+      },
+    ]);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, likes, "Likes fetched successfully"));
+  } catch (error) {
+    return new ApiError(500, "Internal Server Error", error, "INTERNAL");
+  }
+});
+
+const getCampaignAdress = asyncHandler(async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign) {
+      return new ApiError(404, "Campaign not found", null, "CAMPAIGN_NOT_FOUND");
+    }
+    const campaignAdress = await Campaign.aggregate([
+      {
+        $match: {
+          _id: campaignId,
+        },
+      },
+      {
+        $lookup: {
+          from: "adresses",
+          localField: "adresses",
+          foreignField: "_id",
+          as: "adresses",
+        },
+      },
+      {
+        $project: {
+          adresses: 1,
+        },
+      },
+      {
+        $unwind: {
+          path: "$adresses",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ]);
+    res.status(200).json(new ApiResponse(200, campaignAdress, "Campaign adress found"));
+  } catch (error) {
+    return new ApiError(500, "Internal Server Error", error, "INTERNAL");
+  }
+});
+
 export {
   listACampaign,
   getAllCampaigns,
@@ -404,4 +498,7 @@ export {
   getCampaignsByQuery,
   searchCampaigns,
   addMembersToACampaign,
+  getAllCommentsForACampaign,
+  getAllLikesForACampaign,
+  getCampaignAdress,
 };
